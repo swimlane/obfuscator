@@ -41,5 +41,24 @@
     "schema"
   ],
   "author": "Swimlane <dev@swimlane.com>",
-  "license": "AGPL-3.0"
+  "license": "AGPL-3.0",
+  "nyc": {
+    "include": [
+      "src/*.ts",
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "src/*.d.ts",
+      "src/**/*.d.ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "reporter": [
+      "lcov",
+      "html",
+      "text"
+    ],
+    "all": true
+  }
 }
