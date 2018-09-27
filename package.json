@@ -1,0 +1,45 @@
+{
+  "name": "@swimlane/obfuscator",
+  "version": "0.0.1",
+  "description": "Obfuscate objects based on a JSON Schema",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "build": "npm-run-all -s build:*",
+    "build:clean": "rimraf dist/*",
+    "build:ts": "tsc",
+    "test": "npm run test:style && npm run test:unit",
+    "test:style": "npm run prettier:test && npm run lint",
+    "test:unit": "mocha --recursive --require ts-node/register 'tests/**/*.spec.ts' -R spec",
+    "test:cov": "nyc npm run test:unit",
+    "test:report": "cat ./coverage/lcov.info | codacy-coverage --language typescript",
+    "test:ci": "npm run test:style && npm run test:cov && npm run test:report",
+    "lint": "tslint ./{src,tests}/{,**/,**/**/}*.ts",
+    "prettier": "prettier --write \"./{src,tests}/**/*.{js,ts,md}\"",
+    "prettier:test": "prettier --list-different \"./{src,tests}/**/*.{js,ts,md}\"",
+    "prepublishOnly": "npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@swimlane/prettier-config-swimlane": "^0.1.1",
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.7.1",
+    "chai": "^4.1.2",
+    "codacy-coverage": "^3.0.0",
+    "mocha": "^5.2.0",
+    "nyc": "^13.0.1",
+    "prettier": "^1.14.2",
+    "rimraf": "^2.6.2",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-config-swimlane": "^3.0.4",
+    "typescript": "^3.0.1"
+  },
+  "keywords": [
+    "obfuscate",
+    "json",
+    "schema"
+  ],
+  "author": "Swimlane <dev@swimlane.com>",
+  "license": "AGPL-3.0"
+}

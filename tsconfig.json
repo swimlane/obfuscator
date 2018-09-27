@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2015",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "declaration": true,
+    "experimentalDecorators": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "removeComments": false,
+    "emitDecoratorMetadata": true,
+    "pretty": false,
+    "strictNullChecks": true,
+    "outDir": "dist",
+    "types": [
+      "node",
+      "mocha"
+    ]
+  },
+  "include": [
+    "src/*.ts",
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "compileOnSave": false,
+  "buildOnSave": false
+}
