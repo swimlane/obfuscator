@@ -1,6 +1,6 @@
 {
   "name": "@swimlane/obfuscator",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Obfuscate objects based on a JSON Schema",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
