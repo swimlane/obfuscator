@@ -4,6 +4,9 @@
   "description": "Obfuscate objects based on a JSON Schema",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "npm-run-all -s build:*",
     "build:clean": "rimraf dist/*",
