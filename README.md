@@ -2,7 +2,7 @@
 
 🗝 Obfuscate values based on [JSON Schemas](https://json-schema.org/)
 
-[![Build Status](https://travis-ci.org/swimlane/obfuscator.svg?branch=master)](https://travis-ci.org/swimlane/obfuscator) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/aa997267ef6048fea131d6f28b984c4b)](https://www.codacy.com/app/Swimlane/obfuscator?utm_source=github.com&utm_medium=referral&utm_content=swimlane/obfuscator&utm_campaign=Badge_Grade)
+[![Build Status](https://travis-ci.org/swimlane/obfuscator.svg?branch=master)](https://travis-ci.org/swimlane/obfuscator) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/aa997267ef6048fea131d6f28b984c4b)](https://www.codacy.com/app/Swimlane/obfuscator?utm_source=github.com&utm_medium=referral&utm_content=swimlane/obfuscator&utm_campaign=Badge_Grade) [![Codacy Badge](https://api.codacy.com/project/badge/Coverage/aa997267ef6048fea131d6f28b984c4b)](https://www.codacy.com/app/Swimlane/obfuscator?utm_source=github.com&utm_medium=referral&utm_content=swimlane/obfuscator&utm_campaign=Badge_Coverage)
 
 ## Quickstart
 
