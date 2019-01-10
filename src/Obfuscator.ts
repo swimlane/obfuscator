@@ -13,7 +13,6 @@ export interface ObfuscateTypeFormat {
 }
 
 export class Obfuscator {
-
   /* The default replacement value */
   static defaultReplaceString = '**********';
 

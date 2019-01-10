@@ -1,4 +1,4 @@
-import {ObfuscateTypeFormat, Obfuscator} from '../src/Obfuscator';
+import { ObfuscateTypeFormat, Obfuscator } from '../src/Obfuscator';
 import { expect } from 'chai';
 
 describe('Obfuscator', () => {
