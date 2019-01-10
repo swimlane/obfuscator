@@ -1,11 +1,19 @@
-import { Obfuscator } from '../src/Obfuscator';
+import {ObfuscateTypeFormat, Obfuscator} from '../src/Obfuscator';
 import { expect } from 'chai';
 
 describe('Obfuscator', () => {
   describe('.value()', () => {
-    it('should obfuscate a value', done => {
+    it('should obfuscate a value with password type', done => {
       const value = '12345';
       const schema = { type: 'password' };
+
+      expect(Obfuscator.value(value, schema)).to.equal(Obfuscator.defaultReplaceString);
+      done();
+    });
+
+    it('should obfuscate a value with password format', done => {
+      const value = '12345';
+      const schema = { type: 'string', format: 'password' };
 
       expect(Obfuscator.value(value, schema)).to.equal(Obfuscator.defaultReplaceString);
       done();
@@ -33,6 +41,33 @@ describe('Obfuscator', () => {
       const value = '12345';
       const schema = { type: 'string' };
       const type = ['string'];
+
+      expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
+      done();
+    });
+
+    it('should obfuscate a value with a user supplied type and no format', done => {
+      const value = '12345';
+      const schema = { type: 'string' };
+      const type: ObfuscateTypeFormat[] = [{ type: 'string' }];
+
+      expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
+      done();
+    });
+
+    it('should obfuscate a value with a user supplied type and any format', done => {
+      const value = '12345';
+      const schema = { type: 'string', format: 'secret' };
+      const type: ObfuscateTypeFormat[] = [{ type: 'string' }];
+
+      expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
+      done();
+    });
+
+    it('should obfuscate a value with a user supplied type and format', done => {
+      const value = '12345';
+      const schema = { type: 'string', format: 'secret' };
+      const type: ObfuscateTypeFormat[] = [{ type: 'string', format: 'secret' }];
 
       expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
       done();
