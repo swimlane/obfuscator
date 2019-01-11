@@ -1,27 +1,46 @@
 export type TransformFunc = (input: any) => any;
 
+export interface ObfuscateTypeFormat {
+  /**
+   * Type to obfuscate.
+   */
+  type: string;
+
+  /**
+   * Format to obfuscate.
+   */
+  format?: string;
+}
+
 export class Obfuscator {
   /* The default replacement value */
   static defaultReplaceString = '**********';
-  static defaultReplaceTypes = ['password'];
+
+  /* The default schema types to obfuscate */
+  static defaultReplaceTypes: ObfuscateTypeFormat[] = [
+    { type: 'password' }, // backward compatibility
+    { type: 'string', format: 'password' }
+  ];
 
   /**
-   * Obfuscate a value
-   * Defaults to any value of type 'password'
+   * Obfuscate a value based on a JSON schema.
+   *
+   * @remarks
+   * Defaults to any value of type 'password' or type 'string' with format 'password'.
    *
    * @static
-   * @param {*} value The value value
-   * @param {*} schema The schema describing the value
-   * @param {string|TransformFunc} [replace=Obfuscator.defaultReplaceString] The default replace string, can be function
-   * @param {string[]} [types=Obfuscator.defaultReplaceTypes] They types to replace
-   * @returns {*}
+   * @param value The value to obfuscate.
+   * @param schema The JSON schema describing the value.
+   * @param replace The string to replace/obfuscate with, can be function.
+   * @param types The types of values to replace.
+   * @returns The obfuscated value.
    * @memberof Obfuscator
    */
   static value(
     value: any,
     schema: any,
     replace: string | TransformFunc = Obfuscator.defaultReplaceString,
-    types: string[] = Obfuscator.defaultReplaceTypes
+    types: string[] | ObfuscateTypeFormat[] = Obfuscator.defaultReplaceTypes
   ): any {
     if (typeof schema !== 'object' || schema === null || !('type' in schema)) {
       return value;
@@ -35,7 +54,7 @@ export class Obfuscator {
       return Obfuscator.array(value, schema, replace, types);
     }
 
-    if (types.indexOf(schema.type) !== -1) {
+    if (Obfuscator.predicateTypeFormat(schema, types)) {
       return replaceFunc(value);
     } else {
       return value;
@@ -43,22 +62,24 @@ export class Obfuscator {
   }
 
   /**
-   * Obfuscate an object based on a JSON schema
-   * Defaults to any value of type 'password'
+   * Obfuscate an object based on a JSON schema.
+   *
+   * @remarks
+   * Defaults to any value of type 'password' or type 'string' with format 'password'.
    *
    * @static
-   * @param {*} obj The object to obfuscate
-   * @param {*} schema The JSON schema describing the object
-   * @param {string|TransformFunc} [replace=Obfuscator.defaultReplaceString] What to replace value with, can be function
-   * @param {string[]} [types=Obfuscator.defaultReplaceTypes] What types of values to replace
-   * @returns {*}
+   * @param obj The object to obfuscate.
+   * @param schema The JSON schema describing the object.
+   * @param replace The string to replace/obfuscate with, can be function.
+   * @param types The types of values to replace.
+   * @returns The obfuscated object.
    * @memberof Obfuscator
    */
   static object(
     obj: any,
     schema: any,
     replace: string | TransformFunc = Obfuscator.defaultReplaceString,
-    types: string[] = Obfuscator.defaultReplaceTypes
+    types: string[] | ObfuscateTypeFormat[] = Obfuscator.defaultReplaceTypes
   ): any {
     // check that object is an object or array
     if (typeof obj !== 'object' || obj === null) return obj;
@@ -100,22 +121,24 @@ export class Obfuscator {
   }
 
   /**
-   * Obfuscate an array based on a JSON schema
-   * Defaults to any value of type 'password'
+   * Obfuscate an array based on a JSON schema.
+   *
+   * @remarks
+   * Defaults to any value of type 'password' or type 'string' with format 'password'.
    *
    * @static
-   * @param {any[]} obj The array to obfuscate
-   * @param {*} schema The JSON schema describing the array
-   * @param {string|TransformFunc} [replace=Obfuscator.defaultReplaceString] What to replace value with, can be function
-   * @param {string[]} [types=Obfuscator.defaultReplaceTypes] What types of values to replace
-   * @returns {*}
+   * @param arr The array to obfuscate.
+   * @param schema The JSON schema describing the array.
+   * @param replace The string to replace/obfuscate with, can be function.
+   * @param types The types of values to replace.
+   * @returns The obfuscated array.
    * @memberof Obfuscator
    */
   static array(
     arr: any[],
     schema: any,
     replace: string | TransformFunc = Obfuscator.defaultReplaceString,
-    types: string[] = Obfuscator.defaultReplaceTypes
+    types: string[] | ObfuscateTypeFormat[] = Obfuscator.defaultReplaceTypes
   ): any[] {
     // check that object is an object or array
     if (typeof arr !== 'object' || arr === null) return arr;
@@ -137,7 +160,7 @@ export class Obfuscator {
     const newArr: any[] = [];
 
     for (const item of arr) {
-      if (schema.items.type && types.indexOf(schema.items.type) !== -1) {
+      if (schema.items.type && Obfuscator.predicateTypeFormat(schema.items, types)) {
         newArr.push(replaceFunc(item));
       } else {
         newArr.push(Obfuscator.value(item, schema.items, replaceFunc, types));
@@ -148,11 +171,11 @@ export class Obfuscator {
   }
 
   /**
-   * Normalize a replace string/fucntion
+   * Normalize a replace string/function.
    *
    * @static
-   * @param {(string|TransformFunc)} replace
-   * @returns {TransformFunc}
+   * @param replace String or function to replace values.
+   * @returns Transform function to replace values.
    * @memberof Obfuscator
    */
   static wrapReplace(replace: string | TransformFunc): TransformFunc {
@@ -161,15 +184,41 @@ export class Obfuscator {
   }
 
   /**
-   * Replaces obfuscated text with the previous value.
-   * Useful when accepting a modified object that contains obfuscated values that you wish to store
-   * the unobfuscated values. (basically an unobfuscator)
+   * Check if schema is one of type and optionally format.
    *
    * @static
-   * @param {*} newValue
-   * @param {*} prevValue
-   * @param {*} [replaceString=Obfuscator.defaultReplaceString]
-   * @returns {*}
+   * @param schema The JSON schema describing a field.
+   * @param types Types and optionally format to check that schema is.
+   * @returns  If schema matches any of the types provided returns true, otherwise false.
+   * @memberof Obfuscator
+   */
+  static predicateTypeFormat(schema: any, types: string[] | ObfuscateTypeFormat[]) {
+    if (schema && schema.type) {
+      for (const i in types) {
+        const type: any = types[i];
+        if (typeof type === 'string' && schema.type === type) {
+          return true;
+        } else if (type.type === schema.type && (type.format === undefined || type.format === schema.format)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Replaces obfuscated text with the previous value.
+   *
+   * @remarks
+   * Useful when accepting a modified object that contains obfuscated values that you wish to store
+   * the unobfuscated values (basically an unobfuscator).
+   *
+   * @static
+   * @param newValue The value to search for replacement string.
+   * @param prevValue The value to replace the new value if replacement string.
+   * @param replaceString The replacement string to search for.
+   * @returns The unobfuscated value.
    * @memberof Obfuscator
    */
   static unObfuscate(newValue: any, prevValue: any, replaceString = Obfuscator.defaultReplaceString): any {

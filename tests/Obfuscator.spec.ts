@@ -1,11 +1,19 @@
-import { Obfuscator } from '../src/Obfuscator';
+import { ObfuscateTypeFormat, Obfuscator } from '../src/Obfuscator';
 import { expect } from 'chai';
 
 describe('Obfuscator', () => {
   describe('.value()', () => {
-    it('should obfuscate a value', done => {
+    it('should obfuscate a value with password type', done => {
       const value = '12345';
       const schema = { type: 'password' };
+
+      expect(Obfuscator.value(value, schema)).to.equal(Obfuscator.defaultReplaceString);
+      done();
+    });
+
+    it('should obfuscate a value with password format', done => {
+      const value = '12345';
+      const schema = { type: 'string', format: 'password' };
 
       expect(Obfuscator.value(value, schema)).to.equal(Obfuscator.defaultReplaceString);
       done();
@@ -35,6 +43,42 @@ describe('Obfuscator', () => {
       const type = ['string'];
 
       expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
+      done();
+    });
+
+    it('should obfuscate a value with a user supplied type and no format', done => {
+      const value = '12345';
+      const schema = { type: 'string' };
+      const type: ObfuscateTypeFormat[] = [{ type: 'string' }];
+
+      expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
+      done();
+    });
+
+    it('should obfuscate a value with a user supplied type and any format', done => {
+      const value = '12345';
+      const schema = { type: 'string', format: 'secret' };
+      const type: ObfuscateTypeFormat[] = [{ type: 'string' }];
+
+      expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
+      done();
+    });
+
+    it('should obfuscate a value with a user supplied type and format', done => {
+      const value = '12345';
+      const schema = { type: 'string', format: 'secret' };
+      const type: ObfuscateTypeFormat[] = [{ type: 'string', format: 'secret' }];
+
+      expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
+      done();
+    });
+
+    it('should not obfuscate a value with a user supplied type and non-matching format', done => {
+      const value = '12345';
+      const schema = { type: 'string', format: 'not-secret' };
+      const type: ObfuscateTypeFormat[] = [{ type: 'string', format: 'secret' }];
+
+      expect(Obfuscator.value(value, schema, undefined, type)).to.equal(value);
       done();
     });
 
@@ -288,6 +332,52 @@ describe('Obfuscator', () => {
       expect(Obfuscator.unObfuscate(newVal, oldVal)).to.deep.equal(combinedVal);
       expect(Obfuscator.unObfuscate(newVal, null)).to.deep.equal(newVal);
       expect(Obfuscator.unObfuscate(null, null)).to.be.null;
+      done();
+    });
+  });
+
+  describe('.predicateTypeFormat()', () => {
+    it('should match on a matching string type value', done => {
+      expect(Obfuscator.predicateTypeFormat({ type: 'string' }, ['string'])).to.be.true;
+      done();
+    });
+
+    it('should not match on a non-matching string type value', done => {
+      expect(Obfuscator.predicateTypeFormat({ type: 'string' }, ['integer'])).to.be.false;
+      done();
+    });
+
+    it('should match on a string type value with multiple options', done => {
+      expect(Obfuscator.predicateTypeFormat({ type: 'string' }, ['integer', 'string'])).to.be.true;
+      done();
+    });
+
+    it('should match on a matching ObfuscateTypeFormat type value', done => {
+      expect(Obfuscator.predicateTypeFormat({ type: 'string' }, [{ type: 'string' }])).to.be.true;
+      done();
+    });
+
+    it('should not match on a non-matching ObfuscateTypeFormat type value', done => {
+      expect(Obfuscator.predicateTypeFormat({ type: 'string' }, [{ type: 'boolean' }])).to.be.false;
+      done();
+    });
+
+    it('should match on an ObfuscateTypeFormat type value with multiple options', done => {
+      expect(Obfuscator.predicateTypeFormat({ type: 'string' }, [{ type: 'integer' }, { type: 'string' }])).to.be.true;
+      done();
+    });
+
+    it('should match on a matching ObfuscateTypeFormat type/format value', done => {
+      expect(
+        Obfuscator.predicateTypeFormat({ type: 'string', format: 'password' }, [{ type: 'string', format: 'password' }])
+      ).to.be.true;
+      done();
+    });
+
+    it('should not match on a non-matching ObfuscateTypeFormat type/format value', done => {
+      expect(
+        Obfuscator.predicateTypeFormat({ type: 'string', format: 'password' }, [{ type: 'string', format: 'date' }])
+      ).to.be.false;
       done();
     });
   });
