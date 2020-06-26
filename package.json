@@ -44,6 +44,14 @@
     "json",
     "schema"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swimlane/obfuscator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/swimlane/obfuscator/issues"
+  },
+  "homepage": "https://github.com/swimlane/obfuscator#readme",
   "author": "Swimlane <dev@swimlane.com>",
   "license": "AGPL-3.0",
   "nyc": {
