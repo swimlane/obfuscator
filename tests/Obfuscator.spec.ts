@@ -334,6 +334,20 @@ describe('Obfuscator', () => {
       expect(Obfuscator.unObfuscate(null, null)).to.be.null;
       done();
     });
+
+    it('should handle dates', done => {
+      const newDate = new Date();
+      const oldDate = new Date(new Date().getTime() - 1000);
+      const newVal = {
+        foo: Obfuscator.defaultReplaceString,
+        fizz: newDate
+      };
+      const oldVal = { foo: 'bar', fizz: oldDate };
+      const result = Obfuscator.unObfuscate(newVal, oldVal);
+      expect(result.fizz instanceof Date);
+      expect(result.fizz.getTime()).to.eq(newDate.getTime());
+      done();
+    });
   });
 
   describe('.predicateTypeFormat()', () => {
