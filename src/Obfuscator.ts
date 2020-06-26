@@ -233,6 +233,11 @@ export class Obfuscator {
       return newValue.map((nv, idx) => Obfuscator.unObfuscate(nv, prevValue[idx], replaceString));
     }
 
+    // date objects are safe
+    if (newValue !== null && newValue instanceof Date) {
+      return newValue;
+    }
+
     // unobfuscate values in an object
     if (newValue !== null && typeof newValue === 'object' && prevValue !== null && typeof prevValue === 'object') {
       const newObj = { ...newValue };
