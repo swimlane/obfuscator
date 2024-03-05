@@ -1,23 +1,11 @@
 export type TransformFunc = (input: any) => any;
 
-export interface ObfuscateTypeFormat {
-  /**
-   * Type to obfuscate.
-   */
-  type: string;
-
-  /**
-   * Format to obfuscate.
-   */
-  format?: string;
-}
-
 export class Obfuscator {
   /* The default replacement value */
   static defaultReplaceString = '**********';
 
   /* The default schema types to obfuscate */
-  static defaultReplaceTypes: ObfuscateTypeFormat[] = [
+  static defaultReplaceTypes: Array<Record<string, unknown>> = [
     { type: 'password' }, // backward compatibility
     { type: 'string', format: 'password' }
   ];
@@ -40,85 +28,73 @@ export class Obfuscator {
     value: any,
     schema: any,
     replace: string | TransformFunc = Obfuscator.defaultReplaceString,
-    types: string[] | ObfuscateTypeFormat[] = Obfuscator.defaultReplaceTypes
+    types: string[] | Array<Record<string, unknown>> = Obfuscator.defaultReplaceTypes
   ): any {
-    if (typeof schema !== 'object' || schema === null || !('type' in schema)) {
+    if (typeof schema !== 'object' || schema === null) {
       return value;
     }
 
     const replaceFunc = Obfuscator.wrapReplace(replace);
 
-    if (schema.type === 'object') {
-      return Obfuscator.object(value, schema, replaceFunc, types);
-    } else if (schema.type === 'array') {
-      return Obfuscator.array(value, schema, replace, types);
-    }
-
     if (Obfuscator.predicateTypeFormat(schema, types)) {
       return replaceFunc(value);
+    }
+
+    if (
+      schema.type === 'object' &&
+      typeof value === 'object' &&
+      value !== null &&
+      !Array.isArray(value) &&
+      typeof value !== 'function'
+    ) {
+      const newObj = Object.assign({}, value);
+      for (const propertyName in schema.properties) {
+        const propertySchema = schema.properties[propertyName];
+
+        if (!(propertyName in value)) {
+          // Skip missing properties
+          continue;
+        }
+
+        newObj[propertyName] = Obfuscator.value(value[propertyName], propertySchema, replaceFunc, types);
+      }
+
+      return newObj;
+    } else if (schema.type === 'array' && Array.isArray(value)) {
+      const newArr: any[] = [];
+
+      for (const item of value) {
+        newArr.push(Obfuscator.value(item, schema.items, replaceFunc, types));
+      }
+      return newArr;
     } else {
       return value;
     }
   }
 
   /**
-   * Obfuscate an object based on a JSON schema.
+   * Obfuscate a object based on a JSON schema.
    *
    * @remarks
    * Defaults to any value of type 'password' or type 'string' with format 'password'.
    *
    * @static
-   * @param obj The object to obfuscate.
-   * @param schema The JSON schema describing the object.
+   * @param obj The value to obfuscate.
+   * @param schema The JSON schema describing the value.
    * @param replace The string to replace/obfuscate with, can be function.
    * @param types The types of values to replace.
-   * @returns The obfuscated object.
+   * @returns The obfuscated value.
    * @memberof Obfuscator
    */
   static object(
     obj: any,
     schema: any,
     replace: string | TransformFunc = Obfuscator.defaultReplaceString,
-    types: string[] | ObfuscateTypeFormat[] = Obfuscator.defaultReplaceTypes
+    types: string[] | Array<Record<string, unknown>> = Obfuscator.defaultReplaceTypes
   ): any {
-    // check that object is an object or array
-    if (typeof obj !== 'object' || obj === null) return obj;
-
-    // check that schema describes an object or array
-    if (
-      typeof schema !== 'object' ||
-      schema === null ||
-      !('type' in schema) ||
-      !(schema.type === 'object' || schema.type === 'array') ||
-      !('properties' in schema || 'items' in schema)
-    ) {
-      // unknown type // not an object/array // properties/items not defined
-      return obj;
-    }
-
-    const replaceFunc = Obfuscator.wrapReplace(replace);
-
-    if (schema.type === 'array') {
-      return Obfuscator.array(obj, schema, replaceFunc, types);
-    }
-
-    const newObj = Object.assign({}, obj);
-
-    for (const propertyName in schema.properties) {
-      const propertySchema = schema.properties[propertyName];
-
-      if (
-        !('type' in propertySchema) || // skip undefined types
-        !(propertyName in obj) // skip missing properties
-      ) {
-        continue;
-      }
-
-      newObj[propertyName] = Obfuscator.value(newObj[propertyName], propertySchema, replaceFunc, types);
-    }
-
-    return newObj;
+    return this.value(obj, schema, replace, types);
   }
+
 
   /**
    * Obfuscate an array based on a JSON schema.
@@ -127,49 +103,21 @@ export class Obfuscator {
    * Defaults to any value of type 'password' or type 'string' with format 'password'.
    *
    * @static
-   * @param arr The array to obfuscate.
-   * @param schema The JSON schema describing the array.
+   * @param arr The value to obfuscate.
+   * @param schema The JSON schema describing the value.
    * @param replace The string to replace/obfuscate with, can be function.
    * @param types The types of values to replace.
-   * @returns The obfuscated array.
+   * @returns The obfuscated value.
    * @memberof Obfuscator
    */
   static array(
-    arr: any[],
-    schema: any,
-    replace: string | TransformFunc = Obfuscator.defaultReplaceString,
-    types: string[] | ObfuscateTypeFormat[] = Obfuscator.defaultReplaceTypes
-  ): any[] {
-    // check that object is an object or array
-    if (typeof arr !== 'object' || arr === null) return arr;
-
-    // check that schema describes an array
-    if (
-      typeof schema !== 'object' ||
-      schema === null ||
-      !('type' in schema) ||
-      schema.type !== 'array' ||
-      !('items' in schema) ||
-      !Array.isArray(arr)
-    ) {
-      return arr;
-    }
-
-    const replaceFunc = Obfuscator.wrapReplace(replace);
-
-    const newArr: any[] = [];
-
-    for (const item of arr) {
-      if (schema.items.type && Obfuscator.predicateTypeFormat(schema.items, types)) {
-        newArr.push(replaceFunc(item));
-      } else {
-        newArr.push(Obfuscator.value(item, schema.items, replaceFunc, types));
-      }
-    }
-
-    return newArr;
+      arr: any,
+      schema: any,
+      replace: string | TransformFunc = Obfuscator.defaultReplaceString,
+      types: string[] | Array<Record<string, unknown>> = Obfuscator.defaultReplaceTypes
+  ): any {
+    return this.value(arr, schema, replace, types)
   }
-
   /**
    * Normalize a replace string/function.
    *
@@ -192,13 +140,15 @@ export class Obfuscator {
    * @returns  If schema matches any of the types provided returns true, otherwise false.
    * @memberof Obfuscator
    */
-  static predicateTypeFormat(schema: any, types: string[] | ObfuscateTypeFormat[]) {
-    if (schema && schema.type) {
+  static predicateTypeFormat(schema: any, types: string[] | Array<Record<string, unknown>>) {
+    if (schema) {
       for (const i in types) {
         const type: any = types[i];
         if (typeof type === 'string' && schema.type === type) {
           return true;
-        } else if (type.type === schema.type && (type.format === undefined || type.format === schema.format)) {
+        }
+        const matchesFormat = Object.keys(type).every(value => value in schema && type[value] === schema[value]);
+        if (matchesFormat) {
           return true;
         }
       }
