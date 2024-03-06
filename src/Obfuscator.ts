@@ -73,7 +73,7 @@ export class Obfuscator {
   }
 
   /**
-   * Obfuscate a object based on a JSON schema.
+   * This is an alias for the "value" method
    *
    * @remarks
    * Defaults to any value of type 'password' or type 'string' with format 'password'.
@@ -95,9 +95,8 @@ export class Obfuscator {
     return this.value(obj, schema, replace, types);
   }
 
-
   /**
-   * Obfuscate an array based on a JSON schema.
+   * This is an alias for the "value" method
    *
    * @remarks
    * Defaults to any value of type 'password' or type 'string' with format 'password'.
@@ -111,12 +110,12 @@ export class Obfuscator {
    * @memberof Obfuscator
    */
   static array(
-      arr: any,
-      schema: any,
-      replace: string | TransformFunc = Obfuscator.defaultReplaceString,
-      types: string[] | Array<Record<string, unknown>> = Obfuscator.defaultReplaceTypes
+    arr: any,
+    schema: any,
+    replace: string | TransformFunc = Obfuscator.defaultReplaceString,
+    types: string[] | Array<Record<string, unknown>> = Obfuscator.defaultReplaceTypes
   ): any {
-    return this.value(arr, schema, replace, types)
+    return this.value(arr, schema, replace, types);
   }
   /**
    * Normalize a replace string/function.

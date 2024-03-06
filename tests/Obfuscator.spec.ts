@@ -197,6 +197,7 @@ describe('Obfuscator', () => {
       ]);
       done();
     });
+
     it('should obfuscate an object using isSensitive', done => {
       const value = {
         foo: {
@@ -220,6 +221,25 @@ describe('Obfuscator', () => {
 
       expect(Obfuscator.value(value, schema, undefined, obfuscateDefinition)).to.deep.equal({
         foo: Obfuscator.defaultReplaceString,
+        fizz: 'buzz'
+      });
+      done();
+    });
+
+    it('should handle an object with no properties', done => {
+      const value = {
+        foo: {
+          bin: 'bar'
+        },
+        fizz: 'buzz'
+      };
+      const schema = {
+        type: 'object'
+      };
+      let obfuscateDefinition = [...Obfuscator.defaultReplaceTypes, { isSensitive: true }];
+
+      expect(Obfuscator.value(value, schema, undefined, obfuscateDefinition)).to.deep.equal({
+        foo: { bin: 'bar' },
         fizz: 'buzz'
       });
       done();
@@ -287,6 +307,15 @@ describe('Obfuscator', () => {
         { foo: Obfuscator.defaultReplaceString },
         { foo: Obfuscator.defaultReplaceString }
       ]);
+      done();
+    });
+
+    it('should handle an array with no items', done => {
+      const arr = ['test'];
+      const schema = {
+        type: 'array'
+      };
+      expect(Obfuscator.value(arr, schema)).to.deep.equal(['test']);
       done();
     });
   });
