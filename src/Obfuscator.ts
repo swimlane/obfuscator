@@ -28,7 +28,7 @@ export class Obfuscator {
     value: any,
     schema: any,
     replace: string | TransformFunc = Obfuscator.defaultReplaceString,
-    types: string[] | Array<Record<string, unknown>> = Obfuscator.defaultReplaceTypes
+    types: Array<Record<string, unknown> | string> = Obfuscator.defaultReplaceTypes
   ): any {
     if (typeof schema !== 'object' || schema === null) {
       return value;
@@ -90,7 +90,7 @@ export class Obfuscator {
     obj: any,
     schema: any,
     replace: string | TransformFunc = Obfuscator.defaultReplaceString,
-    types: string[] | Array<Record<string, unknown>> = Obfuscator.defaultReplaceTypes
+    types: Array<Record<string, unknown> | string> = Obfuscator.defaultReplaceTypes
   ): any {
     return this.value(obj, schema, replace, types);
   }
@@ -113,7 +113,7 @@ export class Obfuscator {
     arr: any,
     schema: any,
     replace: string | TransformFunc = Obfuscator.defaultReplaceString,
-    types: string[] | Array<Record<string, unknown>> = Obfuscator.defaultReplaceTypes
+    types: Array<Record<string, unknown> | string> = Obfuscator.defaultReplaceTypes
   ): any {
     return this.value(arr, schema, replace, types);
   }
@@ -139,7 +139,7 @@ export class Obfuscator {
    * @returns  If schema matches any of the types provided returns true, otherwise false.
    * @memberof Obfuscator
    */
-  static predicateTypeFormat(schema: any, types: string[] | Array<Record<string, unknown>>) {
+  static predicateTypeFormat(schema: any, types: Array<Record<string, unknown> | string>) {
     if (schema) {
       for (const i in types) {
         const type: any = types[i];
