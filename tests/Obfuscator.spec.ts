@@ -318,6 +318,26 @@ describe('Obfuscator', () => {
       expect(Obfuscator.value(arr, schema)).to.deep.equal(['test']);
       done();
     });
+
+    it('should replace items in an array with index specific schemas', done => {
+      const arr = ['foo', 12];
+      const schema = {
+        type: 'array',
+        items: [
+          {
+            type: 'password'
+          },
+          {
+            type: 'number'
+          }
+        ]
+      };
+      expect(Obfuscator.value(arr, schema)).to.deep.equal([
+        Obfuscator.defaultReplaceString,
+        12
+      ]);
+      done();
+    });
   });
 
   describe('.unObfuscate()', () => {

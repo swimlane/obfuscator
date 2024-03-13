@@ -62,9 +62,14 @@ export class Obfuscator {
       return newObj;
     } else if (schema.type === 'array' && Array.isArray(value)) {
       const newArr: any[] = [];
-
-      for (const item of value) {
-        newArr.push(Obfuscator.value(item, schema.items, replaceFunc, types));
+      if (Array.isArray(schema.items)) {
+        for (const i in value) {
+          newArr.push(Obfuscator.value(value[i], schema.items[i], replaceFunc, types));
+        }
+      } else {
+        for (const item of value) {
+          newArr.push(Obfuscator.value(item, schema.items, replaceFunc, types));
+        }
       }
       return newArr;
     } else {
