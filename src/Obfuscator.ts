@@ -42,10 +42,10 @@ export class Obfuscator {
 
     if (
       schema.type === 'object' &&
-      typeof value === 'object' &&
-      value !== null &&
-      !Array.isArray(value) &&
-      typeof value !== 'function'
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    ![String, Number, Date, RegExp].some(t => value instanceof t)
     ) {
       const newObj = Object.assign({}, value);
       for (const propertyName in schema.properties) {
