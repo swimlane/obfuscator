@@ -78,17 +78,18 @@ export class Obfuscator {
   }
 
   /**
+   * Obfuscate an object based on a JSON schema.
    * This is an alias for the "value" method
    *
    * @remarks
    * Defaults to any value of type 'password' or type 'string' with format 'password'.
    *
    * @static
-   * @param obj The value to obfuscate.
-   * @param schema The JSON schema describing the value.
+   * @param obj The object to obfuscate.
+   * @param schema The JSON schema describing the object.
    * @param replace The string to replace/obfuscate with, can be function.
    * @param types The types of values to replace.
-   * @returns The obfuscated value.
+   * @returns The obfuscated object.
    * @memberof Obfuscator
    */
   static object(
@@ -101,17 +102,18 @@ export class Obfuscator {
   }
 
   /**
+   * Obfuscate an array based on a JSON schema.
    * This is an alias for the "value" method
    *
    * @remarks
    * Defaults to any value of type 'password' or type 'string' with format 'password'.
    *
    * @static
-   * @param arr The value to obfuscate.
-   * @param schema The JSON schema describing the value.
+   * @param arr The array to obfuscate.
+   * @param schema The JSON schema describing the array.
    * @param replace The string to replace/obfuscate with, can be function.
    * @param types The types of values to replace.
-   * @returns The obfuscated value.
+   * @returns The obfuscated array.
    * @memberof Obfuscator
    */
   static array(

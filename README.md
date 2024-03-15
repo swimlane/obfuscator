@@ -53,7 +53,7 @@ This function will obfuscate a value based on a JSON schema provided.
 - _replace_: _(optional)_ The value to obfuscate with. By default, this is `**********`. It can be a:
   - _string_: Any value you want to replace it with. (ex. `'[ REDACTED ]'`)
   - _function_: A function that accepts `(value, key)` and returns a string. This is useful if you want to obfuscate differently based on the value of key name. (ex. `(value, key) => 'REDACTED ' + value.length`)
-- _types_: _(optional)_ An array of JSON schema property conditions you want to redact. By default, this is `[{ type: 'password' }, { type: 'string', format: 'password' }]`
+- _types_: _(optional)_ An array of JSON schema types you want to redact. By default, this is `[{ type: 'password' }, { type: 'string', format: 'password' }]`
 
 ### Obfuscator.unObfuscate(newValue, prevValue, [replaceString])
 
