@@ -6,8 +6,8 @@ export class Obfuscator {
 
   /* The default schema types to obfuscate */
   static defaultReplaceTypes: Array<Record<string, unknown>> = [
-    {type: 'password'}, // backward compatibility
-    {type: 'string', format: 'password'}
+    { type: 'password' }, // backward compatibility
+    { type: 'string', format: 'password' }
   ];
 
   /**
@@ -197,7 +197,7 @@ export class Obfuscator {
 
     // unobfuscate values in an object
     if (newValue !== null && typeof newValue === 'object' && prevValue !== null && typeof prevValue === 'object') {
-      const newObj = {...newValue};
+      const newObj = { ...newValue };
       for (const key in newObj) {
         newObj[key] = Obfuscator.unObfuscate(newObj[key], prevValue[key], replaceString);
       }

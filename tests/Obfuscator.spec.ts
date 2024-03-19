@@ -332,10 +332,7 @@ describe('Obfuscator', () => {
           }
         ]
       };
-      expect(Obfuscator.value(arr, schema)).to.deep.equal([
-        Obfuscator.defaultReplaceString,
-        12
-      ]);
+      expect(Obfuscator.value(arr, schema)).to.deep.equal([Obfuscator.defaultReplaceString, 12]);
       done();
     });
   });
