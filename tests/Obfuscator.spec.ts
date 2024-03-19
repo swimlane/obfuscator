@@ -1,4 +1,4 @@
-import { ObfuscateTypeFormat, Obfuscator } from '../src/Obfuscator';
+import { Obfuscator } from '../src/Obfuscator';
 import { expect } from 'chai';
 
 describe('Obfuscator', () => {
@@ -49,7 +49,7 @@ describe('Obfuscator', () => {
     it('should obfuscate a value with a user supplied type and no format', done => {
       const value = '12345';
       const schema = { type: 'string' };
-      const type: ObfuscateTypeFormat[] = [{ type: 'string' }];
+      const type: Array<Record<string, unknown>> = [{ type: 'string' }];
 
       expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
       done();
@@ -58,7 +58,7 @@ describe('Obfuscator', () => {
     it('should obfuscate a value with a user supplied type and any format', done => {
       const value = '12345';
       const schema = { type: 'string', format: 'secret' };
-      const type: ObfuscateTypeFormat[] = [{ type: 'string' }];
+      const type: Array<Record<string, unknown>> = [{ type: 'string' }];
 
       expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
       done();
@@ -67,7 +67,7 @@ describe('Obfuscator', () => {
     it('should obfuscate a value with a user supplied type and format', done => {
       const value = '12345';
       const schema = { type: 'string', format: 'secret' };
-      const type: ObfuscateTypeFormat[] = [{ type: 'string', format: 'secret' }];
+      const type: Array<Record<string, unknown>> = [{ type: 'string', format: 'secret' }];
 
       expect(Obfuscator.value(value, schema, undefined, type)).to.equal(Obfuscator.defaultReplaceString);
       done();
@@ -76,7 +76,7 @@ describe('Obfuscator', () => {
     it('should not obfuscate a value with a user supplied type and non-matching format', done => {
       const value = '12345';
       const schema = { type: 'string', format: 'not-secret' };
-      const type: ObfuscateTypeFormat[] = [{ type: 'string', format: 'secret' }];
+      const type: Array<Record<string, unknown>> = [{ type: 'string', format: 'secret' }];
 
       expect(Obfuscator.value(value, schema, undefined, type)).to.equal(value);
       done();
@@ -122,7 +122,7 @@ describe('Obfuscator', () => {
         }
       };
 
-      expect(Obfuscator.object(obj, schema)).to.deep.equal({ foo: Obfuscator.defaultReplaceString, fizz: 'buzz' });
+      expect(Obfuscator.value(obj, schema)).to.deep.equal({ foo: Obfuscator.defaultReplaceString, fizz: 'buzz' });
       done();
     });
 
@@ -131,7 +131,7 @@ describe('Obfuscator', () => {
       const schema = { type: 'object', properties: { foo: { type: 'password' }, fizz: { type: 'string' } } };
       const replace = (input: any) => JSON.stringify(input).toUpperCase();
 
-      expect(Obfuscator.object(obj, schema, replace)).to.deep.equal({
+      expect(Obfuscator.value(obj, schema, replace)).to.deep.equal({
         foo: '"BAR"',
         fizz: 'buzz'
       });
@@ -160,7 +160,7 @@ describe('Obfuscator', () => {
         }
       };
 
-      expect(Obfuscator.object(obj, schema)).to.deep.equal({
+      expect(Obfuscator.value(obj, schema)).to.deep.equal({
         foo: Obfuscator.defaultReplaceString,
         fizz: 'buzz',
         obj: {
@@ -174,9 +174,9 @@ describe('Obfuscator', () => {
     });
 
     it('should ignore a non-object', done => {
-      expect(Obfuscator.object(4, {})).to.equal(4);
-      expect(Obfuscator.object('foo', {})).to.equal('foo');
-      expect(Obfuscator.object(true, {})).to.equal(true);
+      expect(Obfuscator.value(4, {})).to.equal(4);
+      expect(Obfuscator.value('foo', {})).to.equal('foo');
+      expect(Obfuscator.value(true, {})).to.equal(true);
       done();
     });
 
@@ -184,17 +184,64 @@ describe('Obfuscator', () => {
       const obj = { foo: 'bar' };
       const schema = { type: 'object', properties: { foo: { type: 'password' }, fizz: { type: 'string' } } };
 
-      expect(Obfuscator.object(obj, schema)).to.deep.equal({ foo: Obfuscator.defaultReplaceString });
+      expect(Obfuscator.value(obj, schema)).to.deep.equal({ foo: Obfuscator.defaultReplaceString });
       done();
     });
 
     it('should replace items in an array', done => {
       const arr = ['foo', 'bar'];
       const schema = { type: 'array', items: { type: 'password' } };
-      expect(Obfuscator.object(arr, schema)).to.deep.equal([
+      expect(Obfuscator.value(arr, schema)).to.deep.equal([
         Obfuscator.defaultReplaceString,
         Obfuscator.defaultReplaceString
       ]);
+      done();
+    });
+
+    it('should obfuscate an object using isSensitive', done => {
+      const value = {
+        foo: {
+          bin: 'bar'
+        },
+        fizz: 'buzz'
+      };
+      const schema = {
+        type: 'object',
+        properties: {
+          foo: {
+            name: 'test',
+            isSensitive: true
+          },
+          fizz: {
+            type: 'string'
+          }
+        }
+      };
+      let obfuscateDefinition = [...Obfuscator.defaultReplaceTypes, { isSensitive: true }];
+
+      expect(Obfuscator.value(value, schema, undefined, obfuscateDefinition)).to.deep.equal({
+        foo: Obfuscator.defaultReplaceString,
+        fizz: 'buzz'
+      });
+      done();
+    });
+
+    it('should handle an object with no properties', done => {
+      const value = {
+        foo: {
+          bin: 'bar'
+        },
+        fizz: 'buzz'
+      };
+      const schema = {
+        type: 'object'
+      };
+      let obfuscateDefinition = [...Obfuscator.defaultReplaceTypes, { isSensitive: true }];
+
+      expect(Obfuscator.value(value, schema, undefined, obfuscateDefinition)).to.deep.equal({
+        foo: { bin: 'bar' },
+        fizz: 'buzz'
+      });
       done();
     });
   });
@@ -208,7 +255,7 @@ describe('Obfuscator', () => {
           type: 'password'
         }
       };
-      expect(Obfuscator.array(arr, schema)).to.deep.equal([
+      expect(Obfuscator.value(arr, schema)).to.deep.equal([
         Obfuscator.defaultReplaceString,
         Obfuscator.defaultReplaceString
       ]);
@@ -218,28 +265,28 @@ describe('Obfuscator', () => {
     it('should ignore missing type schema', done => {
       const arr = ['foo', 'bar'];
       const schema = {};
-      expect(Obfuscator.array(arr, schema)).to.deep.equal(arr);
+      expect(Obfuscator.value(arr, schema)).to.deep.equal(arr);
       done();
     });
 
     it('should ignore non-array schema', done => {
       const arr = ['foo', 'bar'];
       const schema = { type: 'string' };
-      expect(Obfuscator.array(arr, schema)).to.deep.equal(arr);
+      expect(Obfuscator.value(arr, schema)).to.deep.equal(arr);
       done();
     });
 
     it('should ignore array with undefined items', done => {
       const arr = ['foo', 'bar'];
       const schema = { type: 'array' };
-      expect(Obfuscator.array(arr, schema)).to.deep.equal(arr);
+      expect(Obfuscator.value(arr, schema)).to.deep.equal(arr);
       done();
     });
 
     it('should ignore a non-array value', done => {
       const arr: any = 42;
       const schema = { type: 'array', items: { type: 'string' } };
-      expect(Obfuscator.array(arr, schema)).to.equal(arr);
+      expect(Obfuscator.value(arr, schema)).to.equal(arr);
       done();
     });
 
@@ -256,9 +303,38 @@ describe('Obfuscator', () => {
           }
         }
       };
-      expect(Obfuscator.array(arr, schema)).to.deep.equal([
+      expect(Obfuscator.value(arr, schema)).to.deep.equal([
         { foo: Obfuscator.defaultReplaceString },
         { foo: Obfuscator.defaultReplaceString }
+      ]);
+      done();
+    });
+
+    it('should handle an array with no items', done => {
+      const arr = ['test'];
+      const schema = {
+        type: 'array'
+      };
+      expect(Obfuscator.value(arr, schema)).to.deep.equal(['test']);
+      done();
+    });
+
+    it('should replace items in an array with index specific schemas', done => {
+      const arr = ['foo', 12];
+      const schema = {
+        type: 'array',
+        items: [
+          {
+            type: 'password'
+          },
+          {
+            type: 'number'
+          }
+        ]
+      };
+      expect(Obfuscator.value(arr, schema)).to.deep.equal([
+        Obfuscator.defaultReplaceString,
+        12
       ]);
       done();
     });
@@ -392,6 +468,17 @@ describe('Obfuscator', () => {
       expect(
         Obfuscator.predicateTypeFormat({ type: 'string', format: 'password' }, [{ type: 'string', format: 'date' }])
       ).to.be.false;
+      done();
+    });
+
+    it('should not match on a non-matching ObfuscateTypeFormat type/format value', done => {
+      expect(Obfuscator.predicateTypeFormat({ type: 'string', isSensitive: true }, [{ isSensitive: true }])).to.be.true;
+      done();
+    });
+
+    it('should not match on a non-matching ObfuscateTypeFormat type/format value', done => {
+      expect(Obfuscator.predicateTypeFormat({ type: 'string', isSensitive: false }, [{ isSensitive: true }])).to.be
+        .false;
       done();
     });
   });
